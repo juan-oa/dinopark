@@ -4,10 +4,12 @@ var express = require('express'),
 	mongoose = require('mongoose'),
 	Task = require('./api/models/todoListModel'),
 	Dino = require('./api/models/dinoModel'),
+	Park = require('./api/models/parkModel'),
+	Zone = require('./api/models/zoneModel'),
 	bodyParser = require('body-parser');
 
 mongoose.Promise = global.Promise;
-mongoose.connect('mongodb://localhost/Tododb');
+mongoose.connect('mongodb://localhost/dinoPark');
 
 app.use(bodyParser.urlencoded({ extended: true}));
 app.use(bodyParser.json());

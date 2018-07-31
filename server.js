@@ -3,9 +3,7 @@ var express = require('express'),
 	app = express(),
 	port = process.env.PORT || 3000,
 	mongoose = require('mongoose'),
-	Task = require('./api/models/todoListModel'),
 	Dino = require('./api/models/dinoModel'),
-	Park = require('./api/models/parkModel'),
 	Zone = require('./api/models/zoneModel'),
 	bodyParser = require('body-parser');
 
@@ -15,8 +13,6 @@ mongoose.connect('mongodb://localhost/dinoPark');
 app.use(bodyParser.urlencoded({ extended: true}));
 app.use(bodyParser.json());
 
-var routesTodo = require('./api/routes/todoListRoutes');
-routesTodo(app);
 var routesDino = require('./api/routes/dinoRoutes');
 routesDino(app);
 var routesPark = require('./api/routes/parkRoutes');

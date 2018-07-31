@@ -5,7 +5,6 @@ var zones = require('../controllers/zoneController');
 
 var mongoose = require('mongoose'),
     Dino = mongoose.model('Dinos'),
-    Park = mongoose.model('Parks'),
     Zone = mongoose.model('Zones');
 
 exports.nulds_event = function(req, res) {

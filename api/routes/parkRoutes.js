@@ -6,6 +6,6 @@ module.exports = function(app) {
     app.route('/api/v1/event')
         .post(park.nulds_event);
 
-    app.route('/maintenance')
+    app.route('/api/v1/maintenance')
         .post(park.maintenance);
 }

@@ -39,34 +39,31 @@ exports.nulds_event = function(req, res) {
 };
 
 exports.maintenance = function(req, res) {
-    Zone.find({}, async function(err, zones) {
-        if (err)
-            res.send(err);
-        var result = []
-        zones.forEach(function(zone) {
-            var el = {
-                'location': zone.row + zone.column,
-                'park_id': zone.park_id,
-                'maintenance': false,
-                'safe': true,
-            }
-            var one_day=1000*60*60*24;
-            var date_diff = Math.abs(Date.now() - zone.last_maintenance)/one_day;
-            el['maintenance'] = (date_diff >= 30)
-            
-            Dino.find({}, {park_id: 1, zone_id: zone._id}, function(err, dinos) {
-                if (err)
-                    res.send(err);
-                dinos.forEach(function (dino) {
-                    if (Date.now < (dino.last_fed + dino.digestion_period_in_hours)) {
+    Zone.find({})
+        .populate('dinos')
+        .exec(function (err, zones) {
+            if (err) console.log(err);
+            var result = []
+            zones.forEach(function(zone) {
+                var el = {
+                    'location': zone.column + zone.row,
+                    'park_id': zone.park_id,
+                    'maintenance': false,
+                    'safe': true,
+                }
+                var one_day=1000*60*60*24;
+                var date_diff = Math.abs(Date.now() - zone.last_maintenance)/one_day;
+                el['maintenance'] = (date_diff >= 30)
+                zone.dinos.forEach(function(dino) {
+                    if (Date.now > (dino.last_fed + dino.digestion_period_in_hours)) {
                         el['safe'] = false;
+                        return;
                     }
                 });
                 result.push(el);
             });
+            res.send(result);
         });
-        res.send(result);
-    });
 };
 
 async function dino_location_updated(data) {

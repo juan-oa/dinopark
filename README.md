@@ -5,6 +5,7 @@
 $ npm install
 $ npm start
 ```
+Requires running MongoDB
 
 ## API
 

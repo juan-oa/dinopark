@@ -18,11 +18,11 @@ exports.nulds_event = function(req, res) {
             dinos.delete_dino(req, res);
             break;
         case "dino_location_updated":
-            dino_location_updated(req.body)
+            dino_location_updated(req.body, res)
             break;
         case "dino_fed":
             var data = {
-                'id': req.body['id'],
+                'id': req.body['dinosaur_id'],
                 'last_fed': req.body['time']
             }
             dinos.update_dino(data, res)
@@ -34,13 +34,17 @@ exports.nulds_event = function(req, res) {
             zones.update_zone(req, res)
             break;
         default:
-            res.send('Invalid type');
+            res.send('Invalid kind');
     }
 };
 
 exports.maintenance = function(req, res) {
+    var request_date = Date.now;
+    if ('time' in req.body)
+        request_date = req.body['time']
     Zone.find({})
         .populate('dinos')
+        .sort({ column: 1, row: 1 })
         .exec(function (err, zones) {
             if (err) console.log(err);
             var result = []
@@ -52,10 +56,14 @@ exports.maintenance = function(req, res) {
                     'safe': true,
                 }
                 var one_day=1000*60*60*24;
-                var date_diff = Math.abs(Date.now() - zone.last_maintenance)/one_day;
-                el['maintenance'] = (date_diff >= 30)
+                if (zone.last_maintenance) {
+                    var date_diff = (request_date - zone.last_maintenance)/one_day;
+                    el['maintenance'] = (date_diff >= 30);
+                } else {
+                    el['maintenance'] = true;
+                }
                 zone.dinos.forEach(function(dino) {
-                    if (Date.now > (dino.last_fed + dino.digestion_period_in_hours)) {
+                    if (request_date > (dino.last_fed + dino.digestion_period_in_hours)) {
                         el['safe'] = false;
                         return;
                     }
@@ -66,7 +74,7 @@ exports.maintenance = function(req, res) {
         });
 };
 
-async function dino_location_updated(data) {
+function dino_location_updated(data, res) {
     var zone_data = {
         'column': data['location'].charAt(0),
         'row': data['location'].slice(1),
@@ -74,19 +82,9 @@ async function dino_location_updated(data) {
     }
     var column = data['location'].charAt(0);
     var row = data['location'].slice(1);
-    var zone = await new Promise(( resolve, reject ) => {
-        Zone.findOneAndUpdate({park_id: data['park_id'], column: column, row: row}, zone_data, {new: true, upsert: true}, function(err, zone) {
-            if (err)
-                return reject(err);
-            resolve(zone);
-        });
-    })
-    Dino.findOneAndUpdate({ id: data['dinosaur_id'] }, {$set: {zone_id: zone._id} }, {new: true}, function (err, doc) {
-        if (err) {
-            console.log(err);
-        } else {
-            console.log("Updated");
-        }
+    Zone.findOneAndUpdate({park_id: data['park_id'], column: column, row: row}, zone_data, {new: true, upsert: true}, function(err, zone) {
+        if (err)
+            res.send(err);
+        dinos.update_dino({ zone_id: zone._id, id: data['dinosaur_id'] }, res);
     });
-    zone.save()
 }

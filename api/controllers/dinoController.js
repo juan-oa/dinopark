@@ -31,7 +31,7 @@ exports.create_dino = function(req, res) {
 };
 
 exports.update_dino = function(req, res) {
-    Dino.findOneAndUpdate({id: req['id']}, req, {new: true}, function(err, task) {
+    Dino.findOneAndUpdate({id: req['id']}, req, {new: true, upsert: true}, function(err, task) {
       if (err)
         res.send(err);
       res.json(task);

@@ -1,3 +1,4 @@
+const request = require('request');
 var express = require('express'),
 	app = express(),
 	port = process.env.PORT || 3000,
@@ -27,4 +28,25 @@ app.use(function(req, res) {
 
 app.listen(port);
 
-console.log('RESTful API server started on: ' + port);
+for (var letter = 65; letter < 90; letter++) {
+	var tmp_letter = String.fromCharCode(letter);
+	for (var number = 1; number <= 15; number++) {
+		Zone.findOneAndUpdate({ column: tmp_letter, row: number }, {$set: {column: tmp_letter, row: number, park_id: 1} }, {new: true, upsert: true}, function (err, doc) {
+			if (err) {
+				console.log(err);
+			}
+		});
+	}
+}
+
+request('https://dinoparks.net/nudls/feed', { json: true }, (err, res, body) => {
+  if (err) { return console.log(err); }
+  body.forEach(element => {
+	  request.post('http://localhost:'+ port + '/api/v1/event', {json: element}, function (error, response, body) {
+		  if (error) console.log(error);
+	  })
+  });
+});
+
+
+console.log('API server started on: ' + port);
